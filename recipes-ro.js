@@ -9,9 +9,9 @@ category_ro:"Fel principal", category_en:"Main dish",
 time:45, servings:4, difficulty_ro:"Ușor", difficulty_en:"Easy",
 ingredients_ro:["500g pulpe de pui","4 cartofi","1 ceapă","2 căței usturoi","2 roșii","2 linguri ulei","sare","piper","pătrunjel"],
 ingredients_en:["500g chicken legs","4 potatoes","1 onion","2 garlic cloves","2 tomatoes","2 tbsp oil","salt","pepper","parsley"],
-steps_ro:["Taie ceapa mărunt și călește-o în ulei 3 minute.","Adaugă puiul și rumenește 8 minute.","Adaugă cartofii cuburi, roșiile, usturoiul, sare, piper și 500ml apă.","Fierbe 30 min la foc mic. Presară pătrunjel și servește."],
+steps_ro:["Taie ceapa mărunt și călește-o în ulei 3 minute.","Adaugă puiul și rumenește-l 8 minute.","Adaugă cartofii tăiați cuburi, roșiile, usturoiul, sare, piper și 500ml apă.","Fierbe 30 min la foc mic. Presară pătrunjel și servește."],
 steps_en:["Chop onion and sauté in oil 3 min.","Add chicken and brown 8 min.","Add diced potatoes, tomatoes, garlic, salt, pepper and 500ml water.","Simmer 30 min. Sprinkle parsley and serve."],
-tags:["pui","cartofi","ceapa","usturoi","rosii","chicken","potato","onion","garlic","tomato","oua?no"]
+tags:["pui","cartofi","ceapa","usturoi","rosii","chicken","potato","onion","garlic","tomato"]
 },
 {
 id:"local-2",
@@ -74,7 +74,7 @@ category_ro:"Garnitură", category_en:"Side dish",
 time:50, servings:4, difficulty_ro:"Ușor", difficulty_en:"Easy",
 ingredients_ro:["1kg cartofi","5 căței usturoi","3 linguri ulei","rozmarin","sare","piper","boia"],
 ingredients_en:["1kg potatoes","5 garlic cloves","3 tbsp oil","rosemary","salt","pepper","paprika"],
-steps_ro:["Taie cartofii wedges.","Amestecă cu ulei, usturoi, condimente.","Coace 40 min la 200°C, întoarce la jumătate."],
+steps_ro:["Taie cartofii în sferturi lungi.","Amestecă cu ulei, usturoi, condimente.","Coace 40 min la 200°C, întoarce-i la jumătate."],
 steps_en:["Cut potatoes in wedges.","Toss with oil, garlic, spices.","Bake 40 min at 200°C, flip halfway."],
 tags:["cartofi","usturoi","potato","garlic"]
 },

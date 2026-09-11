@@ -27,7 +27,7 @@ let favorites = JSON.parse(localStorage.getItem("chef_fav") || "[]");
 let currentIngredients = [];
 
 const I18N = {
-ro:{appName:"ChefAcasă",heroTitle:"Ce ai în frigider? Îți spun ce să gătești 👨‍🍳",heroSub:"Scrie 2-3 ingrediente pe care le ai, iar noi căutăm rețete în baza locală + pe internet + îți recomandăm detalii complete.",search:"Caută rețete",surprise:"Surprinde-mă",searchNet:"Caută și pe internet cu ingredientele tale:",loading:"Caut rețete delicioase...",empty:"Scrie ingredientele sus și apasă „Caută rețete”. Poți scrie și în română și în engleză.",settings:"Setări AI",assistant:"Asistent Bucătar",keyHint:"Cheia se salvează doar în browserul tău (localStorage). Nu o distribui. O poți lua gratis de pe openrouter.ai",details_ingredients:"🧂 Ingrediente",details_steps:"👩‍🍳 Pași de preparare",details_reco:"⭐ Recomandări similare",details_video:"🎥 Video",servings:"porții",minutes:"min",match:"potrivire",view:"Vezi rețeta",fav:"Salvează",netHint:"Se deschide într-un tab nou"},
+ro:{appName:"ChefAcasă",heroTitle:"Ce ai în frigider? Îți spun ce să gătești 👨‍🍳",heroSub:"Scrie 2-3 ingrediente pe care le ai, iar noi căutăm rețete în baza locală + pe internet și îți arătăm rețeta completă.",search:"Caută rețete",surprise:"Surprinde-mă",searchNet:"Caută și pe internet cu ingredientele tale:",loading:"Caut rețete delicioase...",empty:"Scrie ingredientele sus și apasă „Caută rețete”. Poți scrie și în română și în engleză.",settings:"Setări AI",assistant:"Asistent Bucătar",keyHint:"Cheia se salvează doar în browserul tău (localStorage). Nu o distribui. O poți lua gratis de pe openrouter.ai",details_ingredients:"🧂 Ingrediente",details_steps:"👩‍🍳 Pași de preparare",details_reco:"⭐ Recomandări similare",details_video:"🎥 Video",servings:"porții",minutes:"min",match:"potrivire",view:"Vezi rețeta",fav:"Salvează",netHint:"Se deschide într-un tab nou"},
 en:{appName:"HomeChef",heroTitle:"What's in your fridge? I'll tell you what to cook 👨‍🍳",heroSub:"Write 2-3 ingredients you have, we search local database + internet + give full details.",search:"Search recipes",surprise:"Surprise me",searchNet:"Also search the web with your ingredients:",loading:"Searching delicious recipes...",empty:"Write ingredients above and press “Search recipes”. You can write in Romanian or English.",settings:"AI Settings",assistant:"Chef Assistant",keyHint:"Key is saved only in your browser (localStorage). Don't share it. Get one free at openrouter.ai",details_ingredients:"🧂 Ingredients",details_steps:"👩‍🍳 Steps",details_reco:"⭐ Similar recommendations",details_video:"🎥 Video",servings:"servings",minutes:"min",match:"match",view:"View recipe",fav:"Save",netHint:"Opens in a new tab"}
 };
 
@@ -35,6 +35,8 @@ en:{appName:"HomeChef",heroTitle:"What's in your fridge? I'll tell you what to c
 const RO_EN = {"oua":"egg","ou":"egg","oua ":"egg","pui":"chicken","porc":"pork","vita":"beef","carne":"beef","peste":"fish","ton":"tuna","cartofi":"potato","cartof":"potato","rosii":"tomato","rosie":"tomato","ceapa":"onion","usturoi":"garlic","orez":"rice","morcov":"carrot","ardei":"pepper","ciuperci":"mushroom","branza":"cheese","lapte":"milk","faina":"flour","zahar":"sugar","unt":"butter","ulei":"oil","fasole":"beans","mazare":"peas","porumb":"corn","lamaie":"lemon","mar":"apple","banane":"banana","banana":"banana","ciocolata":"chocolate","paste":"pasta","spaghete":"spaghetti","smantana":"cream","ouale":"egg","paine":"bread","bagheta":"bread","dovlecel":"zucchini","vinete":"eggplant","spanac":"spinach","salata":"lettuce","castraveti":"cucumber","masline":"olive","oua":"egg","miere":"honey","nuci":"nuts","piept":"breast","pulpe":"leg"};
 
 function norm(s){return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();}
+function roRetete(n){if(n===1)return "1 rețetă";if(n===0)return "nicio rețetă";if(n<20)return n+" rețete";return n+" de rețete";}
+function enRecipes(n){return n===1?"1 recipe":n+" recipes";}
 function toEN(w){const n=norm(w);return RO_EN[n]||n;}
 function t(k){return (I18N[lang]&&I18N[lang][k])||I18N.ro[k]||k;}
 
@@ -73,7 +75,7 @@ async function callPollinations(msgs,maxTokens){  const res=await fetch("https:/
   const data=await res.json();
   const m=data.choices?.[0]?.message||{};
   const ans=cleanReply((m.content||m.reasoning||"").trim());
-  if(!ans)throw new Error("Pollinations: raspuns gol");
+  if(!ans)throw new Error("Pollinations: răspuns gol");
   return ans;
 }
 
@@ -122,7 +124,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   // settings
   document.getElementById("settingsBtn").onclick=()=>{document.getElementById("apiKeyInput").value=getApiKey();document.getElementById("proxyInput").value=getProxyUrl();document.getElementById("providerSelect").value=getProvider();document.getElementById("autoTrBox").checked=getAutoTr();refreshFreeModels(true).then(()=>{document.getElementById("modelSelect").value=getModel();});document.getElementById("settingsModal").classList.remove("hidden");};
   document.getElementById("settingsClose").onclick=()=>document.getElementById("settingsModal").classList.add("hidden");
-  document.getElementById("saveKeyBtn").onclick=()=>{localStorage.setItem("chef_or_key",document.getElementById("apiKeyInput").value.trim());localStorage.setItem("chef_proxy",document.getElementById("proxyInput").value.trim().replace(/\/+$/,""));localStorage.setItem("chef_or_model",document.getElementById("modelSelect").value);localStorage.setItem("chef_provider",document.getElementById("providerSelect").value);localStorage.setItem("chef_autotr",document.getElementById("autoTrBox").checked?"1":"0");document.getElementById("settingsModal").classList.add("hidden");checkApi();addMsg("bot",lang==="ro"?"✅ Setări salvate! Provider: "+getProvider():"✅ Settings saved!");};
+  document.getElementById("saveKeyBtn").onclick=()=>{localStorage.setItem("chef_or_key",document.getElementById("apiKeyInput").value.trim());localStorage.setItem("chef_proxy",document.getElementById("proxyInput").value.trim().replace(/\/+$/,""));localStorage.setItem("chef_or_model",document.getElementById("modelSelect").value);localStorage.setItem("chef_provider",document.getElementById("providerSelect").value);localStorage.setItem("chef_autotr",document.getElementById("autoTrBox").checked?"1":"0");document.getElementById("settingsModal").classList.add("hidden");checkApi();addMsg("bot",lang==="ro"?"✅ Setări salvate! Furnizor: "+getProvider():"✅ Settings saved!");};
   document.getElementById("testKeyBtn").onclick=testConnection;
   document.getElementById("refreshModels").onclick=(e)=>{e.preventDefault();refreshFreeModels(false);};
   // chat
@@ -193,9 +195,9 @@ async function doSearch(){
     sel.innerHTML=`<option value="">📂 ${lang==="ro"?"Toate categoriile":"All categories"} (${allResults.length})</option>`+cats.map(c=>`<option>${c}</option>`).join("");
     renderResults();
     const st=document.getElementById("stats");st.classList.remove("hidden");
-    st.textContent=(lang==="ro"?`Am găsit ${allResults.length} rețete pentru: ${ings.join(", ")} (local + TheMealDB + internet)`:`Found ${allResults.length} recipes for: ${ings.join(", ")} (local + TheMealDB + web)`);
+    st.textContent=(lang==="ro"?`Am găsit ${roRetete(allResults.length)} pentru: ${ings.join(", ")} (local + TheMealDB + internet)`:`Found ${enRecipes(allResults.length)} for: ${ings.join(", ")} (local + TheMealDB + web)`);
     // notifica chatul
-    if(allResults.length)addMsg("bot",(lang==="ro"?`🔍 Am găsit ${allResults.length} rețete cu ${ings.join(", ")}. Apasă pe orice rețetă pentru detalii, sau întreabă-mă: "care e cea mai rapidă?" / "ce-mi recomanzi?"`:`🔍 Found ${allResults.length} recipes with ${ings.join(", ")}. Click any recipe for details, or ask me: "which is fastest?"`));
+    if(allResults.length)addMsg("bot",(lang==="ro"?`🔍 Am găsit ${roRetete(allResults.length)} cu ${ings.join(", ")}. Apasă pe orice rețetă pentru detalii, sau întreabă-mă: "care e cea mai rapidă?" / "ce-mi recomanzi?"`:`🔍 Found ${enRecipes(allResults.length)} with ${ings.join(", ")}. Click any recipe for details, or ask me: "which is fastest?"`));
   }catch(e){console.error(e);}
   document.getElementById("loading").classList.add("hidden");
 }
@@ -292,7 +294,7 @@ function toggleFav(r){
   if(i>=0)favorites.splice(i,1);else favorites.push(r);
   localStorage.setItem("chef_fav",JSON.stringify(favorites));
   updateFavCount();
-  toast(i>=0?(lang==="ro"?"Șters de la favorite":"Removed from favorites"):(lang==="ro"?"Salvat la favorite ❤️":"Saved to favorites ❤️"),"ok");
+  toast(i>=0?(lang==="ro"?"Șters din favorite":"Removed from favorites"):(lang==="ro"?"Adăugat la favorite ❤️":"Saved to favorites ❤️"),"ok");
 }
 function showFavorites(){
   if(!favorites.length){toast(lang==="ro"?"Nu ai favorite încă. Apasă ❤️ pe o rețetă!":"No favorites yet. Press ❤️ on a recipe!","info");return;}
@@ -406,7 +408,7 @@ function openModal(r){
     <div class="meta"><span class="badge match">⭐ ${r.match}% ${t("match")}</span><span class="badge">⏱ ${r.time||30} ${t("minutes")}</span><span class="badge">🍽 <span id="servLbl">${r.servings||4}</span> ${t("servings")}</span><span class="badge">🔥 ~${Math.round(kcalPerServing(r))} kcal/porție</span><span class="badge">${dietLbl(r)}</span><span class="badge">${r.category||""}</span>${r.area?`<span class="badge">🌍 ${r.area}</span>`:""}</div>
     <div class="port-row">🍽️ Porții: <button onclick="changePortions(-1)">−</button><b id="portLbl">${r.servings||4}</b><button onclick="changePortions(1)">+</button><span class="hint">(cantitățile se recalculează)</span></div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn primary" onclick="askAbout('${r.id.replace(/'/g,"")}')">💬 ${lang==="ro"?"Întreabă asistentul":"Ask assistant"}</button><button class="btn primary" onclick="openCook('${r.id}')">🍳 ${lang==="ro"?"Mod gătire":"Cook mode"}</button><button class="btn" onclick='toggleFavById("${r.id}")'>${isFav?"💔":"❤️"} ${t("fav")}</button>${r.youtube?`<a class="btn" target="_blank" href="${r.youtube}">🎥 YouTube</a>`:""}</div>
-    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><select id="planDay" style="padding:8px;border-radius:8px;border:1px solid #ddd">${DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join("")}</select><button class="btn small" onclick="addToPlan()">📅 Pune în meniu</button><button class="btn small" onclick="waRecipe()">💬 WhatsApp</button><button class="btn small" onclick="window.print()">🖨 Printează</button></div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><select id="planDay" style="padding:8px;border-radius:8px;border:1px solid #ddd">${DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join("")}</select><button class="btn small" onclick="addToPlan()">📅 Pune în meniu</button><button class="btn small" onclick="waRecipe()">💬 WhatsApp</button><button class="btn small" onclick="window.print()">🖨 Tipărește</button></div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button id="speakBtn" class="btn" onclick="speakRecipe()">🔊 ${lang==="ro"?"Citește rețeta":"Read recipe"}</button><button class="btn ghost" onclick="stopSpeak()">⏹ Stop</button><span id="speakStatus" style="font-size:12px;color:#666"></span></div>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:8px 10px">
       <span style="font-size:13px">🌐 Google Translate <b>gratuit, nelimitat, fără cheie</b>:</span>
@@ -515,20 +517,20 @@ async function testConnection(){
           document.getElementById("modelSelect").value=cand;
           localStorage.setItem("chef_or_model",cand);
           checkApi();
-          box.textContent=(notes.length?notes.join(" | ")+" | ":"")+`✅ OpenRouter liber gasit (${i+1}/${candidates.length}): `+cand+` (l-am selectat automat, apasa Salveaza)`;
+          box.textContent=(notes.length?notes.join(" | ")+" | ":"")+`✅ OpenRouter liber găsit (${i+1}/${candidates.length}): `+cand+` (l-am selectat automat, apasă Salvează)`;
           return;
         }
         lastHint=data.error.message||"";
         if(res.status===429)await new Promise(r=>setTimeout(r,1000));
-        else if(res.status!==404&&res.status!==500&&res.status!==503)break; // eroare reala (ex 401 cheie gresita), nu mai incerca
-      }catch(e1){lastHint=(e1&&e1.name==="AbortError")?"timeout 12s, incerc urmatorul":e1.message;continue;}
+        else if(res.status!==404&&res.status!==500&&res.status!==503)break; // eroare reală (ex 401 cheie greșită), nu mai încerca
+      }catch(e1){lastHint=(e1&&e1.name==="AbortError")?"timeout 12s, încerc următorul":e1.message;continue;}
     }
     let hint=lastHint||"";
-    if(hint.includes("429")||hint.includes("rate"))hint="Toate cele 4 modele incercate sunt aglomerate pe pool-ul comun (eroare 429 upstream). Solutii: 1) treci Provider pe ♾️ Nelimitat GRATIS si apasa Salveaza, 2) asteapta 1-2 min, 3) adauga cheia ta Google AI Studio in openrouter.ai/settings/integrations.";
-    else if(hint.includes("401")||hint.includes("key"))hint="Cheie OpenRouter invalida (401). Genereaza una noua pe openrouter.ai/keys.";
-    else hint=`Am incercat toate cele ${DYNAMIC_FREE_MODELS.length} modele :free si toate sunt momentan pline (limitele gratis se reseteaza la cateva minute — re-testeaza peste 2-3 min). Chatul incearca oricum toata lista la fiecare mesaj. Ultima eroare: `+hint;
+    if(hint.includes("429")||hint.includes("rate"))hint="Modelele :free sunt aglomerate pe pool-ul comun (eroare 429 upstream). Soluții: 1) treci Furnizorul pe ♾️ Nelimitat GRATIS și apasă Salvează, 2) așteaptă 1-2 min, 3) adaugă cheia ta Google AI Studio în openrouter.ai/settings/integrations.";
+    else if(hint.includes("401")||hint.includes("key"))hint="Cheie OpenRouter invalidă (401). Generează una nouă pe openrouter.ai/keys.";
+    else hint=`Am încercat toate cele ${DYNAMIC_FREE_MODELS.length} modele :free și toate sunt momentan pline (limitele gratis se resetează la câteva minute — testează din nou peste 2-3 min). Chatul încearcă oricum toată lista la fiecare mesaj. Ultima eroare: `+hint;
     box.textContent=(notes.length?notes.join(" | ")+" | ":"")+"❌ OpenRouter: "+hint;
-  }catch(e){box.textContent="❌ Eroare retea: "+e.message;}
+  }catch(e){box.textContent="❌ Eroare rețea: "+e.message;}
 }
 // Taie gândirea cu voce tare a modelelor reasoning (ex: "Okay, the user...")
 // Păstrează tot răspunsul intact dacă începe direct cu rețeta.
@@ -627,7 +629,7 @@ function formatFullRecipe(r){
   const title=r.title||r.title_ro;
   const ings=r.ingredients||r.ingredients_ro;
   const steps=r.steps||r.steps_ro;
-  if(lang==="ro")return `🍳 ${title} (⏱ ${r.time||30} min, 🍽 ${r.servings||2} portii)\n\n🧂 Ingrediente:\n- ${ings.join("\n- ")}\n\n👩‍🍳 Pasi:\n${steps.map((s,i)=>(i+1)+". "+s).join("\n")}\n\n💡 Pont: gusta de sare la final + presara patrunjel. Pofta buna! Scrie-mi alt ingredient daca vrei alta reteta.`;
+  if(lang==="ro")return `🍳 ${title} (⏱ ${r.time||30} min, 🍽 ${r.servings||2} porții)\n\n🧂 Ingrediente:\n- ${ings.join("\n- ")}\n\n👩‍🍳 Pași:\n${steps.map((s,i)=>(i+1)+". "+s).join("\n")}\n\n💡 Pont: gustă de sare la final și presară pătrunjel. Poftă bună! Scrie-mi alt ingredient dacă vrei altă rețetă.`;
   return `🍳 ${title} (${r.time||30} min, ${r.servings||2} servings)\n\nIngredients:\n- ${ings.join("\n- ")}\n\nSteps:\n${steps.map((s,i)=>(i+1)+". "+s).join("\n")}\n\nTip: enjoy! Tell me another ingredient for more.`;
 }
 function fallbackAnswer(q){
@@ -666,7 +668,7 @@ function importBackup(file){
     try{
       const obj=JSON.parse(rd.result);
       if(!obj||obj.app!=="chefacasa"||!obj.data)throw new Error(lang==="ro"?"Fișier invalid (nu e backup ChefAcasă).":"Invalid file (not a ChefAcasă backup).");
-      if(!confirm(lang==="ro"?"Restaurezi backupul? Datele actuale din browser vor fi înlocuite.":"Restore backup? Current browser data will be replaced."))return;
+      if(!confirm(lang==="ro"?"Sigur restaurezi backupul? Datele actuale din browser vor fi înlocuite.":"Restore backup? Current browser data will be replaced."))return;
       Object.keys(obj.data).forEach(k=>{if(BACKUP_KEYS.includes(k))localStorage.setItem(k,JSON.stringify(obj.data[k]));});
       lang=localStorage.getItem("chef_lang")||"ro";
       favorites=JSON.parse(localStorage.getItem("chef_fav")||"[]");
@@ -966,7 +968,7 @@ function saveMineForm(){
   const title=document.getElementById("fTitle").value.trim();
   const ings=document.getElementById("fIngs").value.split("\n").map(s=>s.trim()).filter(Boolean);
   const steps=document.getElementById("fSteps").value.split("\n").map(s=>s.trim()).filter(Boolean);
-  if(!title||!ings.length||!steps.length){toast(lang==="ro"?"Completează titlu + minim 1 ingredient + 1 pas!":"Fill title + 1 ingredient + 1 step!","err");return;}
+  if(!title||!ings.length||!steps.length){toast(lang==="ro"?"Completează titlul, cel puțin un ingredient și un pas!":"Fill title + 1 ingredient + 1 step!","err");return;}
   const all=getMine();
   const obj={id:editingMine||("mine-"+Date.now()),title,emoji:document.getElementById("fEmoji").value.trim()||"🍲",time:+document.getElementById("fTime").value||30,serv:+document.getElementById("fServ").value||4,cat:document.getElementById("fCat").value.trim(),ings,steps};
   const ix=all.findIndex(x=>x.id===obj.id);
@@ -974,7 +976,7 @@ function saveMineForm(){
   saveMine(all);renderMine();
   document.getElementById("mineModal").classList.add("hidden");
 }
-function delMine(id){if(!confirm(lang==="ro"?"Ștergi rețeta?":"Delete recipe?"))return;saveMine(getMine().filter(x=>x.id!==id));Object.keys(plan).forEach(d=>{if(plan[d]===id)delete plan[d];});savePlan();renderMine();renderPlan();}
+function delMine(id){if(!confirm(lang==="ro"?"Sigur ștergi definitiv rețeta?":"Delete recipe?"))return;saveMine(getMine().filter(x=>x.id!==id));Object.keys(plan).forEach(d=>{if(plan[d]===id)delete plan[d];});savePlan();renderMine();renderPlan();}
 function renderMine(){
   const g=document.getElementById("mineGrid");if(!g)return;g.innerHTML="";
   const all=getMine();

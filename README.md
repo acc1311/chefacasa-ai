@@ -75,7 +75,7 @@ Scrii 2-3 ingrediente pe care le ai → primești rețete complete:
 - 🍳 Mod gătire hands-free: pași mari, timer cu alarmă, citire vocală
 - 📅 Meniu săptămânal + 🛒 listă de cumpărături grupată pe raioane
 - 📖 Rețetele tale (salvate în browser, incluse în căutare)
-- 💬 Chat cu asistent bucătar + fallback automat pe modele  + rețete locale
+- 💬 Chat cu asistent bucătar + fallback automat pe modele + rețete locale
 - 🌐 Selector limbă chat (RO/EN) + 😂🤬 mod comic & piperat (opțional)
 - 📲 Se instalează pe telefon (PWA, merge offline) · ⬇️⬆️ backup/restaurare JSON
 
