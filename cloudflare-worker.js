@@ -28,18 +28,20 @@
 // Cat e "*" raspunde oricarui site (ok pentru inceput, mai putin strict).
 const ALLOWED_ORIGIN = "*";
 
-// Modele OpenRouter gratuite incercate in ordine (primele 8 / request).
+// Modele OpenRouter gratuite incercate in ordine.
+// Primele = raspund direct curat; ultimele 2 sunt reasoning (isi arata
+// gandirea) si se folosesc doar daca celelalte sunt pline.
 const FREE_MODELS = [
   "nvidia/nemotron-3-super-120b-a12b:free",
-  "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
   "google/gemma-4-31b-it:free",
   "google/gemma-4-26b-a4b-it:free",
   "nex-agi/nex-n2.5-pro:free",
   "nex-agi/nex-n2.5-mini:free",
-  "liquid/lfm-2.5-2.6b:free",
   "poolside/laguna-s-2.1:free",
   "thinkingmachines/inkling-small:free",
-  "cohere/north-mini-code:free"
+  "cohere/north-mini-code:free",
+  "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+  "liquid/lfm-2.5-2.6b:free"
 ];
 
 // Protectie anti-abuz: max 20 requesturi / minut / IP (memorie locala worker-ului).
@@ -93,10 +95,13 @@ export default {
     const debug = url.searchParams.get("debug") === "1";
     const trace = { hasKey: !!env.OPENROUTER_KEY, openrouterTried: 0, openrouterLast: "", pollinations: "skip" };
 
-    // 1) OpenRouter cu cheia secreta (doar modele :free)
+    // 1) OpenRouter cu cheia secreta (doar modele :free).
+    // Mai intai vrem raspuns curat (content); reasoning-ul se pastreaza
+    // doar ca ultima solutie, ca sa nu amestece engleza cu romana.
     if (env.OPENROUTER_KEY) {
       const wanted = typeof body.model === "string" && body.model.endsWith(":free") ? [body.model] : [];
-      const models = [...new Set([...wanted, ...FREE_MODELS])].slice(0, 8);
+      const models = [...new Set([...wanted, ...FREE_MODELS])].slice(0, 10);
+      let reasoningFallback = null;
       for (const model of models) {
         trace.openrouterTried++;
         try {
@@ -108,11 +113,14 @@ export default {
           const d = await r.json();
           if (!d.error) {
             const m = (d.choices && d.choices[0] && d.choices[0].message) || {};
-            const ans = (m.content || m.reasoning || "").trim();
+            const ans = (m.content || "").trim();
             if (ans) return json({ reply: ans, via: "openrouter:" + model });
+            const rsn = (m.reasoning || m.reasoning_content || "").trim();
+            if (rsn && !reasoningFallback) reasoningFallback = { reply: rsn, via: "openrouter-reasoning:" + model };
           } else trace.openrouterLast = (d.error.message || JSON.stringify(d.error)).slice(0, 160);
         } catch (e) { trace.openrouterLast = String(e).slice(0, 160); }
       }
+      if (reasoningFallback) return json(reasoningFallback);
     }
 
     // 2) Fallback Pollinations (fara cheie, nelimitat)
@@ -124,7 +132,7 @@ export default {
       });
       const d = await r.json();
       const m = (d.choices && d.choices[0] && d.choices[0].message) || {};
-      const ans = (m.content || m.reasoning || "").trim();
+      const ans = (m.content || "").trim() || (m.reasoning || "").trim();
       if (ans) return json({ reply: ans, via: "pollinations" });
       trace.pollinations = "raspuns gol";
     } catch (e) { trace.pollinations = String(e).slice(0, 160); }

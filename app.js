@@ -7,6 +7,7 @@ const DEFAULT_API_KEY = "";
 // Cheia OpenRouter sta secreta in worker (variabila OPENROUTER_KEY), NU in acest fisier.
 const DEFAULT_PROXY_URL = "https://chefacasa-ai.brm-laser-veronese.workers.dev";
 function getProxyUrl(){return (localStorage.getItem("chef_proxy")||DEFAULT_PROXY_URL||"").replace(/\/+$/,"");}
+function getChatLang(){const c=localStorage.getItem("chef_chat_lang")||"auto";return c==="auto"?lang:c;}
 
 let lang = localStorage.getItem("chef_lang") || "ro";
 let allResults = [];
@@ -115,6 +116,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   // chat
   document.getElementById("chatFab").onclick=toggleChat;
   document.getElementById("chatClose").onclick=toggleChat;
+  document.getElementById("chatLang").value=localStorage.getItem("chef_chat_lang")||"auto";
+  document.getElementById("chatLang").onchange=(e)=>{localStorage.setItem("chef_chat_lang",e.target.value);toast(lang==="ro"?"🌐 Asistentul va răspunde în: "+(getChatLang()==="ro"?"română":"engleză"):"🌐 Assistant language set.","ok");};
   document.getElementById("chatSend").onclick=sendChat;
   document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat();});
   buildChips(); updateFavCount(); checkApi(); buildQuickQ(); refreshFreeModels(true); renderPlan(); renderShop(); renderMine(); initInstall(); showIntro(false);
@@ -516,9 +519,10 @@ async function callAI(lastUser){
   const box=document.getElementById("chatMessages");
   if(!lastUser){const users=[...box.querySelectorAll(".msg.user")];lastUser=users.length?users[users.length-1].textContent:"Salut";}
   const recipesCtx=allResults.slice(0,6).map(r=>`- ${r.title} (${r.match}%): ${(r.ingredients||[]).slice(0,8).join(", ")}`).join("\n")||"none yet";
-  const sys=lang==="ro"
-   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI: Raspunde mereu cu RETETA COMPLETA (titlu, ingrediente cu cantitati, pasi numerotati, timp, pont). Nu intreba "vrei reteta?" - D-O direct! Raspunde scurt, practic, în română. Daca userul zice DA, da reteta imediat.`
-   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nRULES: Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time, tip). Never ask "want the recipe?" - GIVE it directly! Answer briefly, practically, in English. If user says YES, give recipe immediately.`;
+  const cl=getChatLang();
+  const sys=cl==="ro"
+   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) Dă mereu RETETA COMPLETA (titlu, ingrediente cu cantitati, pasi numerotati, timp, pont). Nu intreba "vrei reteta?" - D-O direct! Daca userul zice DA, da reteta imediat.`
+   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time, tip). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.`;
   const msgs=[{role:"system",content:sys},...chatHistory.slice(-8),{role:"user",content:lastUser}];
   const typing=addMsg("bot","✍️ ...");
   let ok=false,lastErr="";
@@ -614,7 +618,7 @@ function toast(msg,type){
 }
 
 // ===== BACKUP / RESTAURARE JSON =====
-const BACKUP_KEYS=["chef_fav","chef_plan","chef_shop","chef_mine","chef_lang","chef_or_model","chef_provider","chef_autotr"];
+const BACKUP_KEYS=["chef_fav","chef_plan","chef_shop","chef_mine","chef_lang","chef_chat_lang","chef_or_model","chef_provider","chef_autotr"];
 function exportBackup(){
   try{
     const data={};
@@ -642,6 +646,7 @@ function importBackup(file){
       try{plan=JSON.parse(localStorage.getItem("chef_plan")||"{}");}catch(e){plan={};}
       try{shop=JSON.parse(localStorage.getItem("chef_shop")||"[]");}catch(e){shop=[];}
       applyLang();updateFavCount();checkApi();renderPlan();renderShop();renderMine();
+      document.getElementById("chatLang").value=localStorage.getItem("chef_chat_lang")||"auto";
       toast(lang==="ro"?"✅ Backup restaurat cu succes!":"✅ Backup restored!","ok");
     }catch(e){toast("❌ "+e.message,"err");}
   };
