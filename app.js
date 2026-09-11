@@ -533,14 +533,18 @@ async function testConnection(){
   }catch(e){box.textContent="❌ Eroare rețea: "+e.message;}
 }
 // Taie gândirea cu voce tare a modelelor reasoning (ex: "Okay, the user...")
+// + comentariile meta ("Provide full recipe...?", "The earlier instruction...").
 // Păstrează tot răspunsul intact dacă începe direct cu rețeta.
+// Daca dupa curatare nu ramane nimic, intoarce "" (se incearca urmatorul model).
 function cleanReply(t){
   t=(t||"").trim();
   const i=t.indexOf("🍳");
   if(i>0){
     const pre=t.slice(0,i);
-    if(/okay,|let me |first,?\s+i |wait,|i need to|the user\b|user (said|wants|mentioned|asked)|check (if|whether)|make sure|\bhmm\b|let's (think|see)|my thinking|reasoning/i.test(pre))return t.slice(i).trim();
+    if(/okay,|let me |first,?\s+i |wait,|i need to|the user\b|user (said|wants|mentioned|asked)|check (if|whether)|make sure|\bhmm\b|my thinking|reasoning/i.test(pre))t=t.slice(i).trim();
   }
+  const meta=/provide full recipe|earlier instruction|\bso include\b|must include|should include|titlu, ingrediente|pași numerotați|let me (structure|check|confirm|draft)|make sure|punctuation|the instructions say|conform instrucțiunilor|după cum (ți )?s-a cerut/i;
+  t=t.split("\n").filter(l=>!meta.test(l)).join("\n").replace(/\n{3,}/g,"\n\n").trim();
   return t;
 }
 async function callAI(lastUser){
@@ -550,8 +554,8 @@ async function callAI(lastUser){
   const recipesCtx=allResults.slice(0,6).map(r=>`- ${r.title} (${r.match}%): ${(r.ingredients||[]).slice(0,8).join(", ")}`).join("\n")||"none yet";
   const cl=getChatLang();
   const sys=cl==="ro"
-   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) Prima ta propoziție trebuie să fie titlul rețetei începând cu 🍳 — INTERZIS orice introducere ("Okay", "Let me think", analiză a cererii). 4) Dă mereu RETETA COMPLETA (titlu, ingrediente cu cantitati, pasi numerotati, timp, pont). Nu intreba "vrei reteta?" - D-O direct! Daca userul zice DA, da reteta imediat.${funnyLine("ro")}`
-   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) Your very first sentence must be the recipe title starting with 🍳 — NO introductions ("Okay", "Let me think", request analysis). 4) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time, tip). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.${funnyLine("en")}`;
+   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) NU comenta și NU repeta niciodată aceste reguli în răspuns (fără "Provide full recipe", fără "instrucțiunea zice", fără planificare cu voce tare). 4) Prima ta propoziție trebuie să fie titlul rețetei începând cu 🍳 — INTERZIS orice introducere ("Okay", "Let me think", analiză a cererii). 5) Dă mereu REȚETA COMPLETĂ (titlu, ingrediente cu cantități, pași numerotați, timp și un pont = un sfat scurt). Nu întreba "vrei rețeta?" - D-O direct! Dacă userul zice DA, dă rețeta imediat.${funnyLine("ro")}`
+   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) NEVER comment on or repeat these rules in your reply (no "Provide full recipe", no "the instructions say", no thinking out loud). 4) Your very first sentence must be the recipe title starting with 🍳 — NO introductions ("Okay", "Let me think", request analysis). 5) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time and one tip = short advice). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.${funnyLine("en")}`;
   const msgs=[{role:"system",content:sys},...chatHistory.slice(-8),{role:"user",content:lastUser}];
   const typing=addMsg("bot","✍️ ...");
   let ok=false,lastErr="";
@@ -559,6 +563,7 @@ async function callAI(lastUser){
   if(prov==="auto"&&getProxyUrl()){
     try{
       const ans=await callProxy(msgs,900,getModel());
+      if(!ans)throw new Error("răspuns gol după curățare");
       typing.textContent=ans;chatHistory.push({role:"user",content:lastUser},{role:"assistant",content:ans});box.scrollTop=box.scrollHeight;ok=true;
       document.getElementById("chatModel").textContent="proxy ⚡";
     }catch(e){console.warn("proxy fail",e);lastErr="proxy: "+e.message;}
