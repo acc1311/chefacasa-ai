@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefAcasă — Rețete după ingrediente + Asistent AI</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b35">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">🍳 <span data-i18n="appName">ChefAcasă</span></div>
+  <div class="top-actions">
+    <span id="apiStatus" class="api-status" title="OpenRouter status">● AI</span>
+    <button id="favBtn" class="btn ghost">❤️ <span id="favCount">0</span></button>
+    <button id="helpBtn" class="btn ghost" title="Ajutor">?</button>
+    <button id="langRO" class="btn small active">RO</button>
+    <button id="langEN" class="btn small">EN</button>
+    <button id="settingsBtn" class="btn ghost">⚙️</button>
+  </div>
+</header>
+<nav class="tabs">
+  <button class="tab active" data-tab="search">🔍 Caută</button>
+  <button class="tab" data-tab="plan">📅 Meniu <span id="planCount" class="pill hidden"></span></button>
+  <button class="tab" data-tab="list">🛒 Listă <span id="listCount" class="pill hidden"></span></button>
+  <button class="tab" data-tab="mine">📖 Rețetele mele <span id="mineCount" class="pill hidden"></span></button>
+  <button id="installBtn" class="btn small hidden">📲 Instalează</button>
+</nav>
+
+<main class="container">
+<div id="sec-search">
+  <section class="hero">
+    <h1 data-i18n="heroTitle">Ce ai în frigider? Îți spun ce să gătești 👨‍🍳</h1>
+    <p class="subtitle" data-i18n="heroSub">Scrie 2-3 ingrediente pe care le ai, iar noi căutăm rețete în baza locală + pe internet + îți recomandăm detalii complete.</p>
+
+    <div class="search-box">
+      <textarea id="ingredientsInput" rows="2" placeholder="ex: ouă, cartofi, ceapă... / eggs, potatoes, onion..."></textarea>
+      <div class="chips" id="exampleChips"></div>
+      <div class="search-row">
+        <button id="searchBtn" class="btn primary big">🔍 <span data-i18n="search">Caută rețete</span></button>
+        <button id="surpriseBtn" class="btn big">🎲 <span data-i18n="surprise">Surprinde-mă</span></button>
+        <button id="clearBtn" class="btn ghost">✖</button>
+      </div>
+      <div class="filters">
+        <select id="categoryFilter">
+          <option value="">📂 <span>Toate categoriile</span></option>
+        </select>
+        <select id="timeFilter">
+          <option value="">⏱️ Orice durată</option>
+          <option value="20">⏱️ &lt; 20 min</option>
+          <option value="40">⏱️ &lt; 40 min</option>
+          <option value="60">⏱️ &lt; 60 min</option>
+        </select>
+        <select id="sortFilter">
+          <option value="match">⭐ Potrivire</option>
+          <option value="time">⏱️ Timp</option>
+          <option value="name">🔤 Nume</option>
+        </select>
+        <select id="dietFilter" title="Filtru dietă">
+          <option value="">🥗 Orice dietă</option>
+          <option value="vegetarian">🥬 Vegetarian</option>
+          <option value="post">🌱 Post / Vegan</option>
+          <option value="gluten">🌾 Fără gluten</option>
+          <option value="light">⚖️ Ușor (&lt;400 kcal/porție)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="net-search">
+      <span data-i18n="searchNet">Caută și pe internet cu ingredientele tale:</span>
+      <div class="net-btns">
+        <button class="btn net" data-net="google">Google</button>
+        <button class="btn net" data-net="youtube">YouTube ▶️</button>
+        <button class="btn net" data-net="bucataras">Bucătăraș.ro</button>
+        <button class="btn net" data-net="jamila">Jamila</button>
+        <button class="btn net" data-net="allrecipes">AllRecipes</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="loading" class="loading hidden">⏳ <span data-i18n="loading">Caut rețete delicioase...</span></div>
+  <div id="stats" class="stats hidden"></div>
+  <section id="results" class="grid"></section>
+  <div id="empty" class="empty">
+    <div class="empty-emoji">🍲</div>
+    <p data-i18n="empty">Scrie ingredientele sus și apasă „Caută rețete”. Poți scrie și în română și în engleză.</p>
+  </div>
+</div><!-- /sec-search -->
+
+<div id="sec-plan" class="hidden">
+  <h2>📅 Meniu săptămânal</h2>
+  <p class="hint">Alege o rețetă pentru fiecare zi (din rezultate, favorite sau rețetele tale). Lista de cumpărături se face singură. <button id="autoPlanBtn" class="btn small">🎲 Generează automat</button> <button id="clearPlanBtn" class="btn small ghost">✖ Golește</button></p>
+  <div id="planGrid" class="plan-grid"></div>
+</div>
+
+<div id="sec-list" class="hidden">
+  <h2>🛒 Listă de cumpărături</h2>
+  <p class="hint">Generată din meniul săptămânal. Bifează ce ai cumpărat. <button id="copyListBtn" class="btn small">📋 Copiază</button> <button id="waListBtn" class="btn small">💬 WhatsApp</button> <button id="clearListBtn" class="btn small ghost">✖ Golește</button></p>
+  <div style="margin:10px 0;display:flex;gap:8px"><input id="manualItem" placeholder="+ adaugă manual (ex: 1kg făină)" style="flex:1;padding:10px;border-radius:10px;border:1px solid #ddd"><button id="addItemBtn" class="btn primary">+</button></div>
+  <ul id="shopList" class="shop-list"></ul>
+</div>
+
+<div id="sec-mine" class="hidden">
+  <h2>📖 Rețetele mele <button id="addRecipeBtn" class="btn primary small">+ Adaugă rețetă</button></h2>
+  <p class="hint">Rețetele tale se salvează în browser și apar la căutare.</p>
+  <div id="mineGrid" class="grid"></div>
+</div>
+</main>
+
+<!-- MODAL RETETA -->
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <button id="modalClose" class="modal-close">✖</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- MODAL SETARI -->
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-content small">
+    <button id="settingsClose" class="modal-close">✖</button>
+    <h2>⚙️ <span data-i18n="settings">Setări AI</span></h2>
+    <label><b>Furnizor AI (provider):</b></label>
+    <select id="providerSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:8px 0">
+      <option value="auto">🤖 Auto (OpenRouter → Nelimitat) — Recomandat ✅</option>
+      <option value="openrouter">OpenRouter (cu cheie, toate modelele :free)</option>
+      <option value="pollinations">♾️ Nelimitat GRATIS fără cheie (GPT-OSS 20B)</option>
+    </select>
+    <label>OpenRouter API Key (doar pentru OpenRouter/Auto, opțional dacă ai Proxy):</label>
+    <input type="password" id="apiKeyInput" placeholder="sk-or-v1-..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:8px 0">
+    <label>Proxy Cloudflare (URL worker, pentru chat instant fără cheie):</label>
+    <input type="text" id="proxyInput" placeholder="https://chefacasa-ai...workers.dev" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:8px 0">
+    <label>Model AI — <a href="#" id="refreshModels" style="font-size:12px">🔄 Reîmprospătează lista completă</a> <span id="modelCount" class="hint"></span></label>
+    <select id="modelSelect" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin:8px 0">
+      <option value="nvidia/nemotron-3-super-120b-a12b:free">Se încarcă lista completă...</option>
+    </select>
+    <label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-size:14px"><input type="checkbox" id="autoTrBox" checked style="width:18px;height:18px"> 🌐 Traducere automată la deschidere (EN→RO)</label>
+    <div style="display:flex;gap:8px">
+      <button id="saveKeyBtn" class="btn primary" style="flex:1">💾 Salvează</button>
+      <button id="testKeyBtn" class="btn" style="flex:1">🔌 Testează</button>
+    </div>
+    <div id="testResult" class="hint" style="margin-top:8px"></div>
+    <hr style="border:none;border-top:1px solid #eee;margin:12px 0">
+    <label><b>💾 Backup datele mele</b> <span class="hint">(favorite, meniu, listă, rețetele mele — fără chei API)</span></label>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="backupBtn" class="btn" style="flex:1">⬇️ Descarcă backup</button>
+      <button id="restoreBtn" class="btn" style="flex:1">⬆️ Restaurează</button>
+      <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
+    </div>
+    <p class="hint" data-i18n="keyHint">Cheia se salvează doar în browserul tău (localStorage). Nu o distribui. O poți lua gratis de pe openrouter.ai</p>
+    <p class="hint">Site referer: ChefAcasă local</p>
+  </div>
+</div>
+
+<!-- MODAL RETETA MEA (adauga/editeaza) -->
+<div id="mineModal" class="modal hidden">
+  <div class="modal-content">
+    <button id="mineClose" class="modal-close">✖</button>
+    <h2>📖 <span id="mineFormTitle">Rețetă nouă</span></h2>
+    <div class="form-grid">
+      <label>Titlu<input id="fTitle" placeholder="ex: Prăjitură cu mere"></label>
+      <label>Emoji<input id="fEmoji" placeholder="🍰" maxlength="4"></label>
+      <label>Timp (min)<input id="fTime" type="number" value="30" min="5"></label>
+      <label>Porții<input id="fServ" type="number" value="4" min="1"></label>
+      <label>Categorie<input id="fCat" placeholder="ex: Desert"></label>
+      <label style="grid-column:1/-1">Ingrediente (câte unul pe linie, cu cantități)<textarea id="fIngs" rows="5" placeholder="300g făină&#10;3 ouă&#10;200ml lapte"></textarea></label>
+      <label style="grid-column:1/-1">Pași (câte unul pe linie)<textarea id="fSteps" rows="5" placeholder="Amestecă tot...&#10;Coace 30 min la 180°C"></textarea></label>
+    </div>
+    <button id="saveMineBtn" class="btn primary big" style="width:100%;margin-top:10px">💾 Salvează rețeta</button>
+  </div>
+</div>
+
+<!-- MOD GATIRE -->
+<div id="cookMode" class="cook hidden">
+  <div class="cook-top"><span id="cookTitle"></span><button id="cookClose" class="btn ghost">✖ Închide</button></div>
+  <div class="cook-step"><span id="cookCount"></span><p id="cookText"></p></div>
+  <div class="cook-nav">
+    <button id="cookPrev" class="btn big">◀</button>
+    <button id="cookSpeak" class="btn big">🔊</button>
+    <button id="cookNext" class="btn big primary">▶</button>
+  </div>
+  <div class="cook-timer">
+    <span>⏲️</span><input id="cookMin" type="number" value="5" min="1" max="180">
+    <span>min</span><button id="cookStart" class="btn primary">Start</button>
+    <button id="cookReset" class="btn ghost">Reset</button>
+    <b id="cookClock">05:00</b>
+  </div>
+  <div class="cook-bar"><div id="cookProg"></div></div>
+</div>
+
+<!-- GHID PRIM UTILIZATOR -->
+<div id="intro" class="modal hidden">
+  <div class="modal-content small" style="text-align:center">
+    <div id="introEmoji" style="font-size:56px">🔍</div>
+    <h2 id="introTitle"></h2>
+    <p id="introText" style="color:#555"></p>
+    <div id="introDots" style="margin:10px 0;letter-spacing:4px"></div>
+    <div style="display:flex;gap:8px">
+      <button id="introSkip" class="btn ghost" style="flex:1">Sari peste</button>
+      <button id="introPrev" class="btn" style="flex:1">◀</button>
+      <button id="introNext" class="btn primary" style="flex:1">Următorul ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTURI -->
+<div id="toasts" class="toasts"></div>
+
+<!-- CHAT -->
+<button id="chatFab">💬 <span id="chatBadge" class="hidden">1</span></button>
+<div id="chatPanel" class="chat-panel hidden">
+  <div class="chat-header">
+    <div>🤖 <b data-i18n="assistant">Asistent Bucătar</b> <span id="chatModel" class="model-tag">AI</span></div>
+    <button id="chatClose" class="btn ghost small">✖</button>
+  </div>
+  <div id="chatMessages" class="chat-messages"></div>
+  <div class="quick-q" id="quickQ"></div>
+  <div class="chat-input-row">
+    <input id="chatInput" placeholder="Întreabă: ce pot găti? cum fac...?">
+    <button id="chatSend" class="btn primary">➤</button>
+  </div>
+</div>
+
+<script src="recipes-ro.js"></script>
+<script src="app.js"></script>
+<script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "ChefAcasă — Rețete după ingrediente",
+  "short_name": "ChefAcasă",
+  "description": "Rețete după ingredientele din frigider + asistent AI, traducere și mod gătire.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8f0",
+  "theme_color": "#ff6b35",
+  "lang": "ro",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

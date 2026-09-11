@@ -1,0 +1,25 @@
+ChefAcasă - CUM PORNEȘTI APLICAȚIA
+=====================================
+1. Dă dublu-click pe start.bat -> se deschide http://localhost:8000
+   (recomandat: asa merg chatul AI, traducerea, instalarea pe telefon)
+   Sau dublu-click direct pe index.html (unele functii online pot fi limitate)
+
+CE ȘTIE SĂ FACĂ (v2):
+- 🔍 Caută rețete după ingrediente (baza locală + TheMealDB + butoane internet)
+- 🥗 Filtru dietă: vegetarian / post / fără gluten / ușor (<400 kcal)
+- 🔥 Calorii estimate per porție (orientativ, calcul local)
+- ⚖️ Porții ajustabile (−/+) cu recalcularea cantităților
+- 🍳 Mod gătire: pași mari, timer cu alarmă, citire vocală
+- 📅 Meniu săptămânal (Luni-Duminică) + generare automată
+- 🛒 Listă de cumpărături automată + manuală, copiere, WhatsApp
+- 📖 Rețetele mele: adaugi/editezi/ștergi, apar la căutare
+- 🌐 Traducere EN→RO automată (Google gratis) + buton manual
+- 🔊 Citește rețeta cu voce tare
+- 💬 Chat Asistent AI (OpenRouter Automation + fallback local)
+- 📱 Instalabil pe telefon: din Chrome meniu "Adaugă pe ecranul de pornire"
+- ❤️ Favorite, RO/EN, trimitere rețetă pe WhatsApp / printare rețetă
+
+DATELE (favorite, meniu, listă, rețetele mele, chei) stau DOAR în browserul tău.
+Fa backup regulat: ⚙️ Setări -> ⬇️ Descarcă backup (fisier JSON cu data).
+Restaurare: ⚙️ Setări -> ⬆️ Restaurează + alegi fisierul (cheile API nu se includ, le repui manual).
+NU PUBLICA folderul pe net cu cheile în el!
