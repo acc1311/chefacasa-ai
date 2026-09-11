@@ -1,63 +1,9 @@
-# ChefAcasă PRO
-
-Versiune PRO incrementală peste aplicația existentă.
-
-## Noutăți PRO v3
-- inventar cu cantități reale și unități normalizate (g/kg/ml/l/buc etc.)
-- migrare automată a inventarului PRO v2 către modelul cantitativ
-- scădere cantitativă la lista de cumpărături: necesar − stoc = de cumpărat
-- agregare a ingredientelor repetate din meniul săptămânal
-- parser pentru cantități din ingrediente (`500g`, `1 kg`, `4 ouă`, `2 linguri` etc.)
-- service worker actualizat la cache v3 și include `pro.js`
-
-## Noutăți PRO v2
-- Frigider / cămară locală în IndexedDB
-- lista de cumpărături scade automat ingredientele deja existente în frigider
-- secțiune „Ce expiră azi”
-- meniu săptămânal AI pe baza stocului, alergenilor, dietei și bugetului
-
-## Noutăți PRO
-- Frigider / cămară locală în IndexedDB
-- cantități și termene de expirare
-- indicator pentru produse care expiră curând
-- recomandări locale pe baza ingredientelor existente
-- profil alimentar: dietă + alergeni + buget zilnic
-- context AI personalizat + generator de meniu săptămânal
-- proxy Cloudflare cu Origin restriction și headere de securitate
-
-## Structură
-- `app.js` — aplicația existentă
-- `pro.js` — stratul PRO izolat
-- `recipes-ro.js` — rețete locale
-- `cloudflare-worker.js` — proxy AI
-- `sw.js` — PWA offline
-
----
-
-# ChefAcasă PRO
-
-Versiune incrementală: păstrează aplicația existentă și adaugă un strat PRO pentru inventar și profil alimentar.
-
-## Noutăți
-- Frigider / cămară în IndexedDB
-- cantități și termene de expirare
-- indicator produse care expiră curând
-- recomandări locale bazate pe ingredientele din inventar
-- profil dietă + alergeni
-- bază pentru context AI personalizat
-- worker Cloudflare cu Origin restriction + headers de securitate
-
-## Structură
-- `app.js` — aplicația existentă
-- `pro.js` — funcționalități PRO izolate
-- `cloudflare-worker.js` — proxy AI
-- `sw.js` — PWA offline
 <div align="center">
 
-# 🍳 ChefAcasă / HomeChef
+# 🍳 ChefAcasă PRO / HomeChef PRO
 
-**Rețete după ingredientele din frigider + asistent AI — fără cont, fără server.**
-**Recipes from your fridge ingredients + AI assistant — no account, no server.**
+**Rețete după ingredientele din frigider + inventar cantitativ + asistent AI — fără cont, fără server.**
+**Recipes from your fridge ingredients + quantitative pantry + AI assistant — no account, no server.**
 
 [🇬🇧 English](#-english) · [🇷🇴 Română](#-română) · [🚀 Live Demo](https://acc1311.github.io/chefacasa-ai/)
 
@@ -66,6 +12,7 @@ Versiune incrementală: păstrează aplicația existentă și adaugă un strat P
 ![PWA](https://img.shields.io/badge/PWA-installable-blue)
 ![Pages](https://img.shields.io/badge/hosting-GitHub_Pages-lightgrey)
 ![Lang](https://img.shields.io/badge/lang-RO_%2B_EN-red)
+![PRO](https://img.shields.io/badge/PRO-v3-blueviolet)
 
 </div>
 
@@ -85,6 +32,33 @@ Type 2–3 ingredients you already have → get recipes with full details:
 - 💬 AI chef chat with automatic fallback across models + local recipes
 - 🌐 Chat language selector (RO/EN) + 😂🤬 funny & spicy reply modes
 - 📲 Installable on phone (PWA, works offline) · ⬇️⬆️ JSON backup/restore
+
+### ⭐ PRO features (new in v3)
+- 🧊 **Quantitative pantry inventory** (IndexedDB): every product stored as
+  `amount + unit`, with expiry dates. v2 inventories migrate automatically on first start.
+- 🛒 **Smart shopping = need − stock:** the weekly menu's needs are aggregated and
+  the stock on hand is subtracted whenever units are compatible.
+  Example: recipe needs `1500 g chicken`, stock has `700 g` → list asks for `800 g chicken`.
+  Ingredients without quantity (or incompatible units) stay listed as-is — never invented values.
+- ⏰ **Expiring today:** products expiring now are highlighted separately, and one tap
+  pushes them into the main search so nothing goes to waste.
+- 🤖 **AI weekly menu** built from real stock + quantities, allergens, chosen diet,
+  daily budget and the local recipe base. The AI returns a strict 7-day JSON and the
+  existing plan is replaced only after all 7 recipes validate.
+- 🔢 **Ingredient parser** (`500g`, `1 kg`, `4 eggs`, `2 tbsp`, `50ml`…) with normalized
+  units (g / kg / ml / l / pcs / tbsp / tsp / cup).
+- 📴 Service Worker cache v3 (includes `pro.js`) — pantry and recipes work offline.
+
+### PRO v2 / v1 (already included)
+- Fridge / pantry in IndexedDB, quantities + expiry dates, soon-to-expire indicator
+- Shopping list skips what you already have; local recommendations from stock
+- Food profile: diet + allergens + daily budget; personalized AI context
+- Cloudflare proxy with Origin restriction + security headers
+
+### 🔜 Roadmap (PRO v4)
+- Smarter name dedup (`piept / pulpe / pui`)
+- Explicit "consume from stock" after cooking
+- Real cost per ingredient · per-serving quantities with auto-scaling
 
 ### Try it
 **Live:** https://acc1311.github.io/chefacasa-ai/ · **Local:** open `index.html`
@@ -108,13 +82,14 @@ Type 2–3 ingredients you already have → get recipes with full details:
 | File | Role |
 |---|---|
 | `index.html` / `style.css` | UI + design |
-| `app.js` | all logic (search, AI, planner, PWA glue) |
+| `app.js` | base app logic (search, AI, planner, PWA glue) |
+| `pro.js` | isolated PRO layer (inventory, smart shopping, AI menu) |
 | `recipes-ro.js` | built-in Romanian recipe base (offline) |
 | `cloudflare-worker.js` | optional free AI proxy (Cloudflare Workers) |
 | `manifest.json`, `icon-*.png`, `sw.js` | PWA install + offline cache |
 
-All personal data (favorites, menu, lists, recipes, keys) stays in **your browser**
-(`localStorage`). **Never commit API keys** — the repo contains none.
+Pantry lives in **IndexedDB**, everything else in **your browser** (`localStorage`).
+**Never commit API keys** — the repo contains none.
 
 ---
 
@@ -132,6 +107,34 @@ Scrii 2-3 ingrediente pe care le ai → primești rețete complete:
 - 💬 Chat cu asistent bucătar + fallback automat pe modele + rețete locale
 - 🌐 Selector limbă chat (RO/EN) + 😂🤬 mod comic & piperat (opțional)
 - 📲 Se instalează pe telefon (PWA, merge offline) · ⬇️⬆️ backup/restaurare JSON
+
+### ⭐ Funcții PRO (noutăți v3)
+- 🧊 **Inventar cantitativ** (frigider/cămară în IndexedDB): fiecare produs cu
+  `cantitate + unitate` și termen de expirare. Inventarul v2 migrează automat la prima pornire.
+- 🛒 **Cumpărături inteligente = necesar − stoc:** necesarul din meniul săptămânal se
+  adună, iar stocul existent se scade când unitățile sunt compatibile.
+  Exemplu: rețeta cere `1500 g pui`, ai `700 g` → lista cere `800 g pui`.
+  Ingredientele fără cantitate (sau cu unități incompatibile) rămân pe listă ca atare —
+  aplicația nu inventează valori.
+- ⏰ **Ce expiră azi:** produsele expirate azi sunt evidențiate separat, iar butonul
+  „Găsește rețete” le pune automat în căutarea principală.
+- 🤖 **Meniu săptămânal AI** din stocul real + cantități, alergeni, dieta aleasă,
+  bugetul zilnic și baza locală de rețete. AI-ul întoarce un JSON strict cu 7 zile,
+  iar planul existent se înlocuiește doar după validarea tuturor celor 7 rețete.
+- 🔢 **Parser de ingrediente** (`500g`, `1 kg`, `4 ouă`, `2 linguri`, `50ml`…) cu unități
+  normalizate (g / kg / ml / l / buc / lingură / linguriță / cană).
+- 📴 Service Worker cache v3 (include `pro.js`) — inventarul și rețetele merg offline.
+
+### PRO v2 / v1 (deja incluse)
+- Frigider / cămară în IndexedDB, cantități + expirări, indicator „expiră curând”
+- Lista scade automat ce ai deja; recomandări locale din stoc
+- Profil alimentar: dietă + alergeni + buget zilnic; context AI personalizat
+- Proxy Cloudflare cu Origin restriction + headere de securitate
+
+### 🔜 Plan (PRO v4)
+- Deduplicare mai bună a denumirilor (`piept / pulpe / pui`)
+- Consum explicit din stoc după gătire
+- Cost real pe ingredient · cantități pe porții cu scalare automată
 
 ### Testează
 **Live:** https://acc1311.github.io/chefacasa-ai/ · **Local:** deschide `index.html`
@@ -155,13 +158,14 @@ Scrii 2-3 ingrediente pe care le ai → primești rețete complete:
 | Fișier | Rol |
 |---|---|
 | `index.html` / `style.css` | interfața + designul |
-| `app.js` | toată logica (căutare, AI, meniu, PWA) |
+| `app.js` | logica aplicației de bază (căutare, AI, meniu, PWA) |
+| `pro.js` | stratul PRO izolat (inventar, cumpărături smart, meniu AI) |
 | `recipes-ro.js` | baza de rețete românești (offline) |
 | `cloudflare-worker.js` | proxy AI opțional gratuit (Cloudflare Workers) |
 | `manifest.json`, `icon-*.png`, `sw.js` | instalare PWA + cache offline |
 
-Toate datele tale (favorite, meniu, liste, rețete, chei) rămân **în browserul tău**
-(`localStorage`). **Nu publica niciodată chei API** — repo-ul nu conține niciuna.
+Inventarul stă în **IndexedDB**, restul în **browserul tău** (`localStorage`).
+**Nu publica niciodată chei API** — repo-ul nu conține niciuna.
 
 ---
 
