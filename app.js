@@ -54,13 +54,13 @@ async function callProxy(msgs,maxTokens,model,base){
   if(!base)throw new Error("proxy neconfigurat");
   const res=await fetch(base+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:msgs,max_tokens:maxTokens||900,model:model||undefined})});
   const data=await res.json();
-  if(data.reply)return data.reply;
+  if(data.reply)return cleanReply(data.reply);
   throw new Error(data.error||("proxy "+res.status));
 }
 async function callPollinations(msgs,maxTokens){  const res=await fetch("https://text.pollinations.ai/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:POLLI_MODEL,messages:msgs,temperature:0.7,max_tokens:maxTokens||900})});
   const data=await res.json();
   const m=data.choices?.[0]?.message||{};
-  const ans=(m.content||m.reasoning||"").trim();
+  const ans=cleanReply((m.content||m.reasoning||"").trim());
   if(!ans)throw new Error("Pollinations: raspuns gol");
   return ans;
 }
@@ -514,6 +514,17 @@ async function testConnection(){
     box.textContent=(notes.length?notes.join(" | ")+" | ":"")+"❌ OpenRouter: "+hint;
   }catch(e){box.textContent="❌ Eroare retea: "+e.message;}
 }
+// Taie gândirea cu voce tare a modelelor reasoning (ex: "Okay, the user...")
+// Păstrează tot răspunsul intact dacă începe direct cu rețeta.
+function cleanReply(t){
+  t=(t||"").trim();
+  const i=t.indexOf("🍳");
+  if(i>0){
+    const pre=t.slice(0,i);
+    if(/okay,|let me |first,?\s+i |wait,|i need to|the user\b|user (said|wants|mentioned|asked)|check (if|whether)|make sure|\bhmm\b|let's (think|see)|my thinking|reasoning/i.test(pre))return t.slice(i).trim();
+  }
+  return t;
+}
 async function callAI(lastUser){
   const prov=getProvider();
   const box=document.getElementById("chatMessages");
@@ -521,8 +532,8 @@ async function callAI(lastUser){
   const recipesCtx=allResults.slice(0,6).map(r=>`- ${r.title} (${r.match}%): ${(r.ingredients||[]).slice(0,8).join(", ")}`).join("\n")||"none yet";
   const cl=getChatLang();
   const sys=cl==="ro"
-   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) Dă mereu RETETA COMPLETA (titlu, ingrediente cu cantitati, pasi numerotati, timp, pont). Nu intreba "vrei reteta?" - D-O direct! Daca userul zice DA, da reteta imediat.`
-   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time, tip). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.`;
+   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) Prima ta propoziție trebuie să fie titlul rețetei începând cu 🍳 — INTERZIS orice introducere ("Okay", "Let me think", analiză a cererii). 4) Dă mereu RETETA COMPLETA (titlu, ingrediente cu cantitati, pasi numerotati, timp, pont). Nu intreba "vrei reteta?" - D-O direct! Daca userul zice DA, da reteta imediat.`
+   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) Your very first sentence must be the recipe title starting with 🍳 — NO introductions ("Okay", "Let me think", request analysis). 4) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time, tip). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.`;
   const msgs=[{role:"system",content:sys},...chatHistory.slice(-8),{role:"user",content:lastUser}];
   const typing=addMsg("bot","✍️ ...");
   let ok=false,lastErr="";
@@ -562,7 +573,7 @@ async function callAI(lastUser){
         continue;
       }
       const m=data.choices?.[0]?.message||{};
-      const ans=(m.content||m.reasoning||"").trim();
+      const ans=cleanReply((m.content||m.reasoning||"").trim());
       if(ans){typing.textContent=ans;chatHistory.push({role:"user",content:lastUser},{role:"assistant",content:ans});box.scrollTop=box.scrollHeight;ok=true;
         document.getElementById("chatModel").textContent=model.split("/").pop().replace(":free","")+" (free)";
         break;}
