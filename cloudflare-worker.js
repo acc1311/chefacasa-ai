@@ -26,7 +26,7 @@
 
 // SCHIMBA cu domeniul site-ului tau dupa publicare, ex: "https://maria.github.io"
 // Cat e "*" raspunde oricarui site (ok pentru inceput, mai putin strict).
-const ALLOWED_ORIGIN = "*";
+const ALLOWED_ORIGIN = "https://acc1311.github.io";
 
 // Modele OpenRouter gratuite incercate in ordine.
 // Primele = raspund direct curat; ultimele 2 sunt reasoning (isi arata
@@ -55,9 +55,10 @@ function rateLimited(ip) {
   return arr.length > 20;
 }
 
-function corsHeaders() {
+function corsHeaders(origin) {
+  const allow = origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
   return {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400"
@@ -66,13 +67,15 @@ function corsHeaders() {
 function json(data, status) {
   return new Response(JSON.stringify(data), {
     status: status || 200,
-    headers: { "Content-Type": "application/json", ...corsHeaders() }
+    headers: { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff", "Cache-Control": "no-store", ...corsHeaders(ALLOWED_ORIGIN) }
   });
 }
 
 export default {
   async fetch(request, env) {
-    if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders() });
+    const origin = request.headers.get("Origin") || "";
+    if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders(origin) });
+    if (origin && origin !== ALLOWED_ORIGIN) return json({ error: "Origin nepermis." }, 403);
 
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/health")
@@ -91,6 +94,8 @@ export default {
       .filter(m => m && (m.role === "user" || m.role === "assistant" || m.role === "system") && typeof m.content === "string")
       .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }));
     if (!clean.length) return json({ error: "Mesaje invalide." }, 400);
+    if (clean.length > 10 || clean.some(m => m.content.length > 4000)) return json({ error: "Cerere prea mare." }, 413);
+    if (clean.length > 10 || clean.some(m => m.content.length > 4000)) return json({ error: "Cerere prea mare." }, 413);
     const maxTokens = Math.min(900, Math.max(50, +body.max_tokens || 800));
     const debug = url.searchParams.get("debug") === "1";
     const trace = { hasKey: !!env.OPENROUTER_KEY, openrouterTried: 0, openrouterLast: "", pollinations: "skip" };

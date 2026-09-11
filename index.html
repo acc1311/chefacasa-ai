@@ -28,6 +28,7 @@
   <button class="tab" data-tab="plan">📅 Meniu <span id="planCount" class="pill hidden"></span></button>
   <button class="tab" data-tab="list">🛒 Listă <span id="listCount" class="pill hidden"></span></button>
   <button class="tab" data-tab="mine">📖 Rețetele mele <span id="mineCount" class="pill hidden"></span></button>
+  <button class="tab" data-tab="fridge">🥶 Frigider <span id="fridgeCount" class="pill hidden"></span></button>
   <button id="installBtn" class="btn small hidden">📲 Instalează</button>
 </nav>
 
@@ -108,6 +109,32 @@
   <h2>📖 Rețetele mele <button id="addRecipeBtn" class="btn primary small">+ Adaugă rețetă</button></h2>
   <p class="hint">Rețetele tale se salvează în browser și apar la căutare.</p>
   <div id="mineGrid" class="grid"></div>
+</div>
+
+<div id="sec-fridge" class="hidden">
+  <div class="pro-header"><div><h2>🥶 Frigiderul meu <span id="expiryCount" class="pill hidden"></span></h2><p class="hint">Inventarul PRO este salvat local în IndexedDB. Nu este trimis în cloud.</p></div></div>
+  <div class="pro-layout">
+    <section class="pro-panel"><h3>➕ Adaugă produs</h3>
+      <div class="form-grid"><label>Produs<input id="invName" placeholder="ex: piept de pui"></label><label>Cantitate<input id="invAmount" type="number" min="0.01" step="0.01" value="1"></label><label>Unitate<select id="invUnit"><option value="buc">buc</option><option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option><option value="lingura">lingură</option><option value="lingurita">linguriță</option><option value="cana">cană</option></select></label><label>Expiră la<input id="invExpiry" type="date"></label><label>Categorie<input id="invCat" placeholder="carne, lactate..."></label><label>Emoji<input id="invEmoji" maxlength="4" placeholder="🍗"></label><input id="invQty" type="hidden" value="1"><input id="invQtyText" type="hidden"></div>
+      <button id="addInventoryBtn" class="btn primary big" style="width:100%;margin-top:10px">➕ Adaugă în frigider</button>
+    </section>
+    <section class="pro-panel"><h3>🍳 Recomandări din frigider</h3><div id="proRecommendations" class="pro-recs"></div></section>
+  </div>
+  <div class="pro-toolbar"><input id="inventoryFilter" placeholder="🔎 Caută în frigider..."><button class="btn pro-open-recs">🍳 Recalculează</button></div>
+  <div id="inventoryGrid" class="pro-inventory"></div>
+  <section class="pro-panel pro-expiry-panel">
+    <div class="pro-section-head"><div><h3>⏰ Ce expiră azi</h3><p class="hint">Prioritizează ingredientele care trebuie folosite acum.</p></div><button id="useExpiringBtn" class="btn small">🍳 Găsește rețete</button></div>
+    <div id="expiringToday" class="pro-expiring"></div>
+  </section>
+  <section class="pro-panel pro-week-panel">
+    <div class="pro-section-head"><div><h3>📅 Meniu săptămânal PRO</h3><p class="hint">AI-ul folosește stocul, alergenii, dieta și bugetul tău. Planul existent este înlocuit numai când generarea reușește.</p></div><button id="generateWeekBtn" class="btn primary">🤖 Generează meniul AI</button></div>
+    <div id="weekBudgetSummary" class="pro-week-summary"></div>
+    <div id="weekAiStatus" class="hint"></div>
+  </section>
+  <section class="pro-panel pro-profile-panel"><h3>🛡️ Profil alimentar</h3><p class="hint">Alergenii servesc la filtrarea recomandărilor locale. Verifică întotdeauna eticheta produsului.</p>
+    <div id="allergenBox" class="pro-checks"><label><input type="checkbox" value="lapte"> Lapte</label><label><input type="checkbox" value="oua"> Ouă</label><label><input type="checkbox" value="gluten"> Gluten</label><label><input type="checkbox" value="arahide"> Arahide</label><label><input type="checkbox" value="nuci"> Nuci</label><label><input type="checkbox" value="soia"> Soia</label></div>
+    <div class="pro-profile-row"><label>Dietă<select id="proDiet"><option value="">Oricare</option><option value="vegetarian">Vegetarian</option><option value="vegan">Vegan / post</option><option value="high-protein">High protein</option><option value="low-carb">Low carb</option></select></label><label>Buget / zi (lei)<input id="proBudget" type="number" min="0" step="1"></label><button id="saveProProfileBtn" class="btn primary">💾 Salvează profilul</button></div>
+  </section>
 </div>
 </main>
 
@@ -235,6 +262,7 @@
 
 <script src="recipes-ro.js"></script>
 <script src="app.js"></script>
+<script src="pro.js"></script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
 </body>
 </html>

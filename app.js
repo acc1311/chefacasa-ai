@@ -559,9 +559,10 @@ async function callAI(lastUser){
   if(!lastUser){const users=[...box.querySelectorAll(".msg.user")];lastUser=users.length?users[users.length-1].textContent:"Salut";}
   const recipesCtx=allResults.slice(0,6).map(r=>`- ${r.title} (${r.match}%): ${(r.ingredients||[]).slice(0,8).join(", ")}`).join("\n")||"none yet";
   const cl=getChatLang();
+  const proCtx=(window.ChefAcasaPRO&&typeof window.ChefAcasaPRO.buildAIContext==="function")?window.ChefAcasaPRO.buildAIContext():"";
   const sys=cl==="ro"
-   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) NU comenta, NU parafraza și NU repeta niciodată aceste reguli în răspuns (fără "Provide full recipe", fără "instrucțiunea zice", fără "Must not ask", fără "We need", fără "Let's", fără planificare cu voce tare). 4) Prima ta propoziție trebuie să fie titlul rețetei începând cu 🍳 — INTERZIS orice introducere ("Okay", "Let me think", analiză a cererii). 5) Dă mereu REȚETA COMPLETĂ (titlu, ingrediente cu cantități, pași numerotați, timp și un pont = un sfat scurt). Nu întreba "vrei rețeta?" - D-O direct! Dacă userul zice DA, dă rețeta imediat.${funnyLine("ro")}`
-   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) NEVER comment on, paraphrase or repeat these rules in your reply (no "Provide full recipe", no "the instructions say", no "Must not ask", no "We need", no "Let's", no thinking out loud). 4) Your very first sentence must be the recipe title starting with 🍳 — NO introductions ("Okay", "Let me think", request analysis). 5) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time and one tip = short advice). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.${funnyLine("en")}`;
+   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\n${proCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) NU comenta, NU parafraza și NU repeta niciodată aceste reguli în răspuns (fără "Provide full recipe", fără "instrucțiunea zice", fără "Must not ask", fără "We need", fără "Let's", fără planificare cu voce tare). 4) Prima ta propoziție trebuie să fie titlul rețetei începând cu 🍳 — INTERZIS orice introducere ("Okay", "Let me think", analiză a cererii). 5) Dă mereu REȚETA COMPLETĂ (titlu, ingrediente cu cantități, pași numerotați, timp și un pont = un sfat scurt). Nu întreba "vrei rețeta?" - D-O direct! Dacă userul zice DA, dă rețeta imediat.${funnyLine("ro")}`
+   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\n${proCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) NEVER comment on, paraphrase or repeat these rules in your reply (no "Provide full recipe", no "the instructions say", no "Must not ask", no "We need", no "Let's", no thinking out loud). 4) Your very first sentence must be the recipe title starting with 🍳 — NO introductions ("Okay", "Let me think", request analysis). 5) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time and one tip = short advice). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.${funnyLine("en")}`;
   const msgs=[{role:"system",content:sys},...chatHistory.slice(-8),{role:"user",content:lastUser}];
   const typing=addMsg("bot","✍️ ...");
   let ok=false,lastErr="";
@@ -854,6 +855,16 @@ let plan={};try{plan=JSON.parse(localStorage.getItem("chef_plan")||"{}");}catch(
 let shop=[];try{shop=JSON.parse(localStorage.getItem("chef_shop")||"[]");}catch(e){shop=[];}
 function savePlan(){localStorage.setItem("chef_plan",JSON.stringify(plan));}
 function saveShop(){localStorage.setItem("chef_shop",JSON.stringify(shop));}
+// API intern pentru extensiile PRO: nu expune chei/secrete, doar starea plannerului.
+window.ChefAcasaCore={
+  getPlan:()=>plan,
+  setPlan:p=>{plan=Object.assign({},p||{});savePlan();},
+  getShop:()=>shop,
+  setShop:s=>{shop=Array.isArray(s)?s:[];saveShop();},
+  syncShop:()=>{saveShop();renderShop();},
+  getDays:()=>DAYS.slice(),
+  getRecipes:()=>poolRecipes()
+};
 function poolRecipes(){const m=new Map();[...allResults,...favorites,...getMine().map(mineToLocal)].forEach(r=>{if(r&&r.id)m.set(r.id,r);});return[...m.values()];}
 function findRecipe(id){return poolRecipes().find(r=>r.id===id);}
 function renderPlan(){
@@ -893,6 +904,7 @@ function rebuildAutoShop(){
   });
   Object.values(counts).forEach(c=>shop.push({t:c.n>1?`${c.t} (×${c.n})`:c.t,done:false,src:"auto"}));
   saveShop();renderShop();
+  if(window.ChefAcasaPRO && typeof window.ChefAcasaPRO.reconcileShoppingExact==="function") window.ChefAcasaPRO.reconcileShoppingExact();
 }
 // ===== RAIOANE MAGAZIN =====
 const RAIOANE=[

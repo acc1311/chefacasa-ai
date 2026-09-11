@@ -1,6 +1,6 @@
 // ChefAcasa Service Worker — cache de baza pentru utilizare offline
-const CACHE = "chefacasa-v1";
-const CORE = ["./", "./index.html", "./style.css", "./app.js", "./recipes-ro.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "chefacasa-v3";
+const CORE = ["./", "./index.html", "./style.css", "./app.js", "./pro.js", "./recipes-ro.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
 });

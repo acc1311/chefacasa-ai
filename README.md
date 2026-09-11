@@ -1,3 +1,57 @@
+# ChefAcasă PRO
+
+Versiune PRO incrementală peste aplicația existentă.
+
+## Noutăți PRO v3
+- inventar cu cantități reale și unități normalizate (g/kg/ml/l/buc etc.)
+- migrare automată a inventarului PRO v2 către modelul cantitativ
+- scădere cantitativă la lista de cumpărături: necesar − stoc = de cumpărat
+- agregare a ingredientelor repetate din meniul săptămânal
+- parser pentru cantități din ingrediente (`500g`, `1 kg`, `4 ouă`, `2 linguri` etc.)
+- service worker actualizat la cache v3 și include `pro.js`
+
+## Noutăți PRO v2
+- Frigider / cămară locală în IndexedDB
+- lista de cumpărături scade automat ingredientele deja existente în frigider
+- secțiune „Ce expiră azi”
+- meniu săptămânal AI pe baza stocului, alergenilor, dietei și bugetului
+
+## Noutăți PRO
+- Frigider / cămară locală în IndexedDB
+- cantități și termene de expirare
+- indicator pentru produse care expiră curând
+- recomandări locale pe baza ingredientelor existente
+- profil alimentar: dietă + alergeni + buget zilnic
+- context AI personalizat + generator de meniu săptămânal
+- proxy Cloudflare cu Origin restriction și headere de securitate
+
+## Structură
+- `app.js` — aplicația existentă
+- `pro.js` — stratul PRO izolat
+- `recipes-ro.js` — rețete locale
+- `cloudflare-worker.js` — proxy AI
+- `sw.js` — PWA offline
+
+---
+
+# ChefAcasă PRO
+
+Versiune incrementală: păstrează aplicația existentă și adaugă un strat PRO pentru inventar și profil alimentar.
+
+## Noutăți
+- Frigider / cămară în IndexedDB
+- cantități și termene de expirare
+- indicator produse care expiră curând
+- recomandări locale bazate pe ingredientele din inventar
+- profil dietă + alergeni
+- bază pentru context AI personalizat
+- worker Cloudflare cu Origin restriction + headers de securitate
+
+## Structură
+- `app.js` — aplicația existentă
+- `pro.js` — funcționalități PRO izolate
+- `cloudflare-worker.js` — proxy AI
+- `sw.js` — PWA offline
 <div align="center">
 
 # 🍳 ChefAcasă / HomeChef
