@@ -29,6 +29,7 @@ Type 2–3 ingredients you already have → get recipes with full details:
 - 📅 Weekly menu planner + 🛒 shopping list grouped by store aisles
 - 📖 Your own recipes (saved in browser, included in search)
 - 💬 AI chef chat with automatic fallback across models + local recipes
+- 🌐 Chat language selector (RO/EN) + 😂🤬 funny & spicy reply modes
 - 📲 Installable on phone (PWA, works offline) · ⬇️⬆️ JSON backup/restore
 
 ### Try it
@@ -75,6 +76,7 @@ Scrii 2-3 ingrediente pe care le ai → primești rețete complete:
 - 📅 Meniu săptămânal + 🛒 listă de cumpărături grupată pe raioane
 - 📖 Rețetele tale (salvate în browser, incluse în căutare)
 - 💬 Chat cu asistent bucătar + fallback automat pe modele  + rețete locale
+- 🌐 Selector limbă chat (RO/EN) + 😂🤬 mod comic & piperat (opțional)
 - 📲 Se instalează pe telefon (PWA, merge offline) · ⬇️⬆️ backup/restaurare JSON
 
 ### Testează

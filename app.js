@@ -8,6 +8,18 @@ const DEFAULT_API_KEY = "";
 const DEFAULT_PROXY_URL = "https://chefacasa-ai.brm-laser-veronese.workers.dev";
 function getProxyUrl(){return (localStorage.getItem("chef_proxy")||DEFAULT_PROXY_URL||"").replace(/\/+$/,"");}
 function getChatLang(){const c=localStorage.getItem("chef_chat_lang")||"auto";return c==="auto"?lang:c;}
+function getFunny(){return localStorage.getItem("chef_funny")==="1";}
+function funnyLevel(){return +(localStorage.getItem("chef_funny")||"0")||0;}
+function funnyLine(cl){
+  const lv=funnyLevel();
+  if(!lv)return "";
+  if(lv===1)return cl==="ro"
+   ?`\nUMOR (mod comic ACTIV): presară umor ușor de bucătărie — o glumă bună, autoironie de bucătar, comparații haioase. Maxim 1-2 glume pe răspuns, fără vulgaritate, fără mișto de user. Rețeta completă rămâne obligatorie și corectă.`
+   :`\nHUMOR (funny mode ON): sprinkle light kitchen humor — one good joke, chef self-irony, funny comparisons. Max 1-2 jokes per reply, no vulgarity, never mock the user. The full correct recipe is still mandatory.`;
+  return cl==="ro"
+   ?`\nUMOR PIPERAT (mod piperat ACTIV): vorbește ca un bucătar arțăgos, dar simpatic. Ai voie la înjurături UȘOARE de bucătărie (gen: naiba, dracu, mama ei de treabă, băi frate) și la mișto PRIETENOS la adresa userului (că a mai ars apa, că taie ceapa strâmb). LIMITE DURE: fără obscenități, fără limbaj sexual, fără scârboșenii, fără jigniri pe teme sensibile (aspect, bani, familie, etnie, religie), niciodată răutăcios sau umilitor — totul rămâne glumă de gașcă. Rețeta completă și corectă rămâne obligatorie.`
+   :`\nSPICY HUMOR (spicy mode ON): talk like a grumpy but lovable chef. Mild kitchen cursing allowed (damn, hell, bloody), plus light FRIENDLY teasing of the user (burnt water, crooked onion chopping). HARD LIMITS: no obscenity, no sexual language, nothing gross, no insults on sensitive topics (looks, money, family, ethnicity, religion), never mean or humiliating — pub banter only. The full correct recipe is still mandatory.`;
+}
 
 let lang = localStorage.getItem("chef_lang") || "ro";
 let allResults = [];
@@ -118,6 +130,10 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("chatClose").onclick=toggleChat;
   document.getElementById("chatLang").value=localStorage.getItem("chef_chat_lang")||"auto";
   document.getElementById("chatLang").onchange=(e)=>{localStorage.setItem("chef_chat_lang",e.target.value);toast(lang==="ro"?"🌐 Asistentul va răspunde în: "+(getChatLang()==="ro"?"română":"engleză"):"🌐 Assistant language set.","ok");};
+  const funnyBtn=document.getElementById("funnyBtn");
+  const paintFunny=()=>{const lv=funnyLevel();funnyBtn.textContent=lv===2?"🤬":"😂";funnyBtn.style.opacity=lv?"1":"0.55";funnyBtn.style.borderColor=lv?"#ff6b35":"#555";funnyBtn.title=lv===2?"Mod piperat: glume + înjurături ușoare (click = oprește)":lv===1?"Mod comic activ (click = piperat)":"Mod comic oprit (click = comic)";};
+  paintFunny();
+  funnyBtn.onclick=()=>{const nl=(funnyLevel()+1)%3;localStorage.setItem("chef_funny",""+nl);paintFunny();toast(nl===2?(lang==="ro"?"🤬 Mod PIPERAT! Glume + înjurături ușoare.":"🤬 Spicy mode!"):nl===1?(lang==="ro"?"😂 Mod comic ACTIVAT! Asistentul glumește.":"😂 Funny mode ON!"):(lang==="ro"?"😐 Mod comic oprit. Rețete serioase.":"😐 Funny mode off."),"ok");};
   document.getElementById("chatSend").onclick=sendChat;
   document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter")sendChat();});
   buildChips(); updateFavCount(); checkApi(); buildQuickQ(); refreshFreeModels(true); renderPlan(); renderShop(); renderMine(); initInstall(); showIntro(false);
@@ -532,8 +548,8 @@ async function callAI(lastUser){
   const recipesCtx=allResults.slice(0,6).map(r=>`- ${r.title} (${r.match}%): ${(r.ingredients||[]).slice(0,8).join(", ")}`).join("\n")||"none yet";
   const cl=getChatLang();
   const sys=cl==="ro"
-   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) Prima ta propoziție trebuie să fie titlul rețetei începând cu 🍳 — INTERZIS orice introducere ("Okay", "Let me think", analiză a cererii). 4) Dă mereu RETETA COMPLETA (titlu, ingrediente cu cantitati, pasi numerotati, timp, pont). Nu intreba "vrei reteta?" - D-O direct! Daca userul zice DA, da reteta imediat.`
-   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) Your very first sentence must be the recipe title starting with 🍳 — NO introductions ("Okay", "Let me think", request analysis). 4) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time, tip). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.`;
+   ?`Ești un bucătar-șef român prietenos "ChefAcasă". Ingredientele userului: ${currentIngredients.join(", ")||"nespecificate"}. Rețete găsite:\n${recipesCtx}\nREGULI STRICTE: 1) Răspunde EXCLUSIV în limba română — ZERO cuvinte în engleză. 2) NU îți arăta gândirea/raționamentul, oferă DOAR răspunsul final. 3) Prima ta propoziție trebuie să fie titlul rețetei începând cu 🍳 — INTERZIS orice introducere ("Okay", "Let me think", analiză a cererii). 4) Dă mereu RETETA COMPLETA (titlu, ingrediente cu cantitati, pasi numerotati, timp, pont). Nu intreba "vrei reteta?" - D-O direct! Daca userul zice DA, da reteta imediat.${funnyLine("ro")}`
+   :`You are friendly chef "HomeChef". User ingredients: ${currentIngredients.join(", ")||"unspecified"}. Found recipes:\n${recipesCtx}\nSTRICT RULES: 1) Answer EXCLUSIVELY in English — ZERO words in any other language. 2) NEVER show your thinking/reasoning, give ONLY the final answer. 3) Your very first sentence must be the recipe title starting with 🍳 — NO introductions ("Okay", "Let me think", request analysis). 4) Always give FULL RECIPE (title, ingredients with amounts, numbered steps, time, tip). Never ask "want the recipe?" - GIVE it directly! If user says YES, give recipe immediately.${funnyLine("en")}`;
   const msgs=[{role:"system",content:sys},...chatHistory.slice(-8),{role:"user",content:lastUser}];
   const typing=addMsg("bot","✍️ ...");
   let ok=false,lastErr="";
@@ -629,7 +645,7 @@ function toast(msg,type){
 }
 
 // ===== BACKUP / RESTAURARE JSON =====
-const BACKUP_KEYS=["chef_fav","chef_plan","chef_shop","chef_mine","chef_lang","chef_chat_lang","chef_or_model","chef_provider","chef_autotr"];
+const BACKUP_KEYS=["chef_fav","chef_plan","chef_shop","chef_mine","chef_lang","chef_chat_lang","chef_funny","chef_or_model","chef_provider","chef_autotr"];
 function exportBackup(){
   try{
     const data={};
