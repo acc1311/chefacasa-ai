@@ -115,6 +115,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("favBtn").onclick=showFavorites;
   document.getElementById("helpBtn").onclick=()=>showIntro(true);
   document.getElementById("backupBtn").onclick=exportBackup;
+  document.getElementById("diagInstallBtn").onclick=diagnoseInstall;
   document.getElementById("restoreBtn").onclick=()=>document.getElementById("restoreFile").click();
   document.getElementById("restoreFile").onchange=(e)=>{if(e.target.files[0])importBackup(e.target.files[0]);e.target.value="";};
   document.getElementById("introSkip").onclick=closeIntro;
@@ -721,13 +722,47 @@ function closeIntro(){document.getElementById("intro").classList.add("hidden");l
 let deferredPrompt=null;
 function initInstall(){
   const btn=document.getElementById("installBtn");
+  if(!btn)return;
+  const standalone=window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches;
+  // Butonul e vizibil mereu (daca aplicatia nu e deja instalata):
+  // cu prompt nativ = instalare dintr-un click, fara = instructiuni manuale.
+  if(!standalone)setTimeout(()=>btn.classList.remove("hidden"),1500);
   window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;btn.classList.remove("hidden");});
   btn.onclick=async()=>{
-    if(!deferredPrompt){toast(lang==="ro"?"Deschide meniul browserului → „Adaugă pe ecranul de pornire”.":"Open browser menu → 'Add to Home Screen'.","info");return;}
+    if(!deferredPrompt){toast(lang==="ro"?"📲 Android/Chrome: meniul ⋮ → „Instalează aplicația” / „Adaugă pe ecranul de pornire”. iPhone/Safari: Distribuie ⬆ → „Pe ecranul de pornire”.":"📲 Android/Chrome menu → Install. iPhone/Safari: Share → Add to Home Screen.","info");return;}
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;deferredPrompt=null;btn.classList.add("hidden");
   };
   window.addEventListener("appinstalled",()=>btn.classList.add("hidden"));
+}
+// Diagnostic instalare PWA: verifica tot lantul si spune exact ce lipseste.
+async function diagnoseInstall(){
+  const box=document.getElementById("installDiag");
+  const L=[];
+  L.push("1) Adresă: "+location.href);
+  L.push(location.protocol.startsWith("http")?"✅ Deschis prin http/https (bine)":"❌ Deschis ca fișier local — instalarea cere http/https (start.bat sau GitHub Pages)");
+  if(!("serviceWorker" in navigator))L.push("❌ Browserul nu suportă Service Worker.");
+  else{
+    try{
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(!reg)L.push("❌ Service Worker neînregistrat — reîncarcă pagina o dată.");
+      else if(!navigator.serviceWorker.controller)L.push("⚠️ Service Worker înregistrat, dar nu controlează pagina — reîncarcă o dată și revino aici.");
+      else L.push("✅ Service Worker activ.");
+    }catch(e){L.push("❌ Eroare Service Worker: "+e.message);}
+  }
+  try{
+    const m=await (await fetch("manifest.json")).json();
+    L.push("✅ Manifest încărcat ("+(m.short_name||m.name||"?")+").");
+    for(const ic of (m.icons||[])){
+      try{const r=await fetch(ic.src,{method:"HEAD"});L.push((r.ok?"✅":"❌")+" Icon "+ic.sizes+(r.ok?"":" lipsește"));}catch(e){L.push("❌ Icon "+ic.sizes+" eroare.");}
+    }
+  }catch(e){L.push("❌ Manifest inaccesibil: "+e.message);}
+  if(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)L.push("✅ Deja instalată! O ai ca aplicație (caută iconița 🍳).");
+  else L.push("ℹ️ Rulează în browser (normal, dacă n-ai instalat-o încă).");
+  L.push(deferredPrompt?"✅ Prompt Chrome disponibil — apasă 📲 Instalează.":"⚠️ Chrome n-a oferit promptul (cauze: refuzat anterior, deja instalată, sau iPhone — pe iPhone se instalează doar manual: Distribuie ⬆ → Pe ecranul de pornire).");
+  const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(isiOS)L.push("ℹ️ Ești pe iPhone/iPad: aici NU există instalare dintr-un click — doar manual din Safari.");
+  box.innerHTML=L.join("<br>");
 }
 
 // ===== TABURI =====
